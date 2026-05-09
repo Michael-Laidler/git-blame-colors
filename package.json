@@ -1,0 +1,63 @@
+{
+  "name": "git-blame-color",
+  "displayName": "Git Blame Color",
+  "description": "Colorize code lines based on git blame author",
+  "version": "0.0.1",
+  "publisher": "git-blame-color",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Git Blame Color",
+      "properties": {
+        "gitBlameColor.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable git blame color annotation"
+        },
+        "gitBlameColor.colors": {
+          "type": "object",
+          "default": {},
+          "description": "Custom colors for authors (author name -> hex color)"
+        },
+        "gitBlameColor.opacity": {
+          "type": "number",
+          "default": 0.2,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Opacity of the blame color overlay (0-1)"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "gitBlameColor.toggle",
+        "title": "Toggle Git Blame Color"
+      },
+      {
+        "command": "gitBlameColor.show",
+        "title": "Show Git Blame Colors"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.21.1",
+    "typescript": "^5.3.3"
+  }
+}
