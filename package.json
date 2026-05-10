@@ -18,6 +18,17 @@
     "configuration": {
       "title": "Git Blame Color",
       "properties": {
+        "gitBlameColor.mode": {
+          "type": "string",
+          "default": "author",
+          "enum": ["author", "heat", "off"],
+          "enumDescriptions": [
+            "Color per author",
+            "Heat gradient by commit age",
+            "Disable all coloring"
+          ],
+          "description": "Coloring mode"
+        },
         "gitBlameColor.enabled": {
           "type": "boolean",
           "default": true,
@@ -27,6 +38,26 @@
           "type": "object",
           "default": {},
           "description": "Custom colors for authors (author name -> hex color)"
+        },
+        "gitBlameColor.heatColors": {
+          "type": "object",
+          "default": {
+            "old": "#2196F3",
+            "new": "#F44336"
+          },
+          "properties": {
+            "old": {
+              "type": "string",
+              "default": "#2196F3",
+              "description": "Color for the oldest commit"
+            },
+            "new": {
+              "type": "string",
+              "default": "#F44336",
+              "description": "Color for the newest commit"
+            }
+          },
+          "description": "Heat colors for age-based gradient"
         },
         "gitBlameColor.opacity": {
           "type": "number",
@@ -46,7 +77,25 @@
         "command": "gitBlameColor.show",
         "title": "Show Git Blame Colors"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gitBlameColor",
+          "title": "Git Blame Color Settings",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitBlameColor": [
+        {
+          "type": "webview",
+          "id": "gitBlameColor.settings",
+          "name": "Author Colors"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

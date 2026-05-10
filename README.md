@@ -1,58 +1,67 @@
 # Git Blame Color
 
-A VS Code extension that colorizes code lines based on git blame author information.
+Eine VS Code Extension, die Codezeilen basierend auf `git blame`-Daten einfärbt – entweder pro Autor oder als Heatmap nach Commit-Alter.
 
 ## Features
 
-- Colorizes code lines based on git blame author
-- Custom colors configurable via VS Code settings
-- Default colors generated from username hash (same user = same color)
-- Toggle command to enable/disable annotations
-- Hover information showing author, email, date, commit hash, and summary
+- **3 Färbungs-Modi**: Per Autor, als Heatmap (alt→neu), oder deaktiviert
+- **Autor-Farben**: Jeder Autor bekommt eine deterministische Farbe (Hash). Farben sind in den Settings überschreibbar.
+- **Heatmap-Modus**: Älteste Commits = Farbe 1, neueste = Farbe 2, dazwischen linearer Farbverlauf
+- **Activity-Bar-Panel**: Klick auf das Icon in der linken Leiste öffnet die Sidebar mit allen Einstellungen
+- **Color Picker**: Autorenfarben und Heat-Farben direkt aus der Sidebar wählbar
+- **Opacity-Steuerung**: Globale Deckkraft des Overlays einstellbar
+- **Hover-Info**: Mouseover zeigt Autor, Email, Datum, Commit-Hash und Summary
+- **Toggle-Command**: Ein-/Ausschalten per Befehl
 
-## Configuration
+## Modi
 
-### gitBlameColor.enabled
-- Type: `boolean`
-- Default: `true`
-- Enable or disable git blame color annotation
+| Modus | Beschreibung |
+|-------|-------------|
+| **Author** | Jeder Autor bekommt eine eigene Farbe (Hash oder benutzerdefiniert) |
+| **Heat** | Farbverlauf zwischen alt (Standard Blau) und neu (Standard Rot) |
+| **Off** | Keine Einfärbung |
 
-### gitBlameColor.opacity
-- Type: `number`
-- Default: `0.2`
-- Range: `0` to `1`
-- Opacity of the blame color overlay
+## Konfiguration
+
+### gitBlameColor.mode
+- Typ: `"author"` \| `"heat"` \| `"off"`
+- Default: `"author"`
+- Färbungsmodus
 
 ### gitBlameColor.colors
-- Type: `object`
+- Typ: `object`
 - Default: `{}`
-- Custom colors for authors (format: `author name -> hex color`)
+- Benutzerdefinierte Autorenfarben
 
-Example:
 ```json
 {
   "gitBlameColor.colors": {
-    "John Doe": "#FF5733",
-    "Jane Smith": "#33FF57"
+    "Max Mustermann": "#FF5733"
   }
 }
 ```
 
+### gitBlameColor.heatColors
+- Typ: `object`
+- Default: `{ "old": "#2196F3", "new": "#F44336" }`
+- Farben für den Heat-Modus (alteste ↔ neueste Commits)
+
+### gitBlameColor.opacity
+- Typ: `number`
+- Default: `0.2`
+- Bereich: `0` bis `1`
+- Deckkraft des Overlays
+
 ## Commands
 
-- `Git Blame Color: Toggle` - Toggle blame colors on/off
-- `Git Blame Color: Show` - Display all authors and their colors in the current file
+- `Git Blame Color: Toggle` – Ein-/Ausschalten
+- `Git Blame Color: Show` – Alle Autoren und ihre Farben anzeigen
 
-## Usage
+## Entwicklung
 
-1. Open a file in a git repository
-2. The extension will automatically colorize lines based on git blame
-3. Hover over any line to see detailed blame information
-4. Customize colors in VS Code settings
+```
+npm install
+npm run compile
+```
 
-## Installation
-
-1. Clone the repository
-2. Run `npm install`
-3. Run `npm run compile`
-4. Open the project in VS Code and press `F5` to debug
+In VS Code `F5` drücken → Extension Development Host öffnet sich.

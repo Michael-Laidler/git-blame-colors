@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
 
+export type ColoringMode = 'author' | 'heat' | 'off';
+
 export interface GitBlameColorConfig {
+  mode: ColoringMode;
   enabled: boolean;
   colors: Record<string, string>;
+  heatColors: { old: string; new: string };
   opacity: number;
 }
 
@@ -22,10 +26,16 @@ export class Configuration {
   public getConfig(): GitBlameColorConfig {
     const config = vscode.workspace.getConfiguration('gitBlameColor');
     return {
+      mode: config.get<ColoringMode>('mode', 'author'),
       enabled: config.get<boolean>('enabled', true),
-      colors: config.get<Record<string, string>>('colors', {}),
+      colors: { ...config.get<Record<string, string>>('colors', {}) },
+      heatColors: { ...config.get<{ old: string; new: string }>('heatColors', { old: '#2196F3', new: '#F44336' }) },
       opacity: config.get<number>('opacity', 0.2)
     };
+  }
+
+  public getMode(): ColoringMode {
+    return this.getConfig().mode;
   }
 
   public isEnabled(): boolean {
@@ -42,6 +52,10 @@ export class Configuration {
 
   public getColorForAuthor(author: string): string | undefined {
     return this.getCustomColors()[author];
+  }
+
+  public getHeatColors(): { old: string; new: string } {
+    return this.getConfig().heatColors;
   }
 
   public onConfigChange(callback: (config: GitBlameColorConfig) => void): vscode.Disposable {

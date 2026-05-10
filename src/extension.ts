@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { GitBlame } from './gitBlame';
 import { Decorator } from './decorator';
 import { Configuration } from './configuration';
+import { SettingsPanel } from './settingsPanel';
 
 let decorator: Decorator | undefined;
 let config: Configuration | undefined;
@@ -11,6 +12,11 @@ let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 export function activate(context: vscode.ExtensionContext): void {
   decorator = new Decorator();
   config = Configuration.getInstance();
+
+  const settingsPanel = new SettingsPanel(context.extensionUri);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(SettingsPanel.viewType, settingsPanel)
+  );
 
   const toggleCommand = vscode.commands.registerCommand('gitBlameColor.toggle', async () => {
     isEnabled = !isEnabled;

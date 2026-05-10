@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { BlameLine } from './gitBlame';
 import { hashStringToColor, hexToRgba } from './colorGenerator';
-import { Configuration } from './configuration';
+import { interpolateColor, computeHeatRatio } from './heatColorGenerator';
+import { Configuration, ColoringMode } from './configuration';
 
 export interface HoverLineData {
   lineNumber: number;
@@ -67,22 +68,19 @@ export class Decorator {
     editor: vscode.TextEditor,
     blameLines: BlameLine[]
   ): Promise<void> {
+    const mode = this.config.getMode();
+
+    if (mode === 'off') {
+      this.clearDecorations(editor.document.uri.toString());
+      return;
+    }
+
     const opacity = this.config.getOpacity();
-    const decorationsByColor = new Map<string, vscode.Range[]>();
+    const editorId = editor.document.uri.toString();
     const hoverData = new Map<number, HoverLineData>();
 
     for (const blameLine of blameLines) {
-      const color = this.getColorForAuthor(blameLine.author);
-
-      if (!decorationsByColor.has(color)) {
-        decorationsByColor.set(color, []);
-      }
-
-      const line = blameLine.lineNumber - 1;
-      const range = new vscode.Range(line, 0, line, 0);
-      decorationsByColor.get(color)!.push(range);
-
-      hoverData.set(line, {
+      hoverData.set(blameLine.lineNumber - 1, {
         lineNumber: blameLine.lineNumber,
         author: blameLine.author,
         email: blameLine.email,
@@ -92,9 +90,70 @@ export class Decorator {
       });
     }
 
-    const editorId = editor.document.uri.toString();
-    this.clearDecorations(editorId);
+    this.hoverData.set(editorId, hoverData);
 
+    if (mode === 'heat') {
+      this.applyHeatDecoration(editor, blameLines, opacity, editorId);
+    } else {
+      this.applyAuthorDecoration(editor, blameLines, opacity, editorId);
+    }
+  }
+
+  private applyAuthorDecoration(
+    editor: vscode.TextEditor,
+    blameLines: BlameLine[],
+    opacity: number,
+    editorId: string
+  ): void {
+    const decorationsByColor = new Map<string, vscode.Range[]>();
+
+    for (const blameLine of blameLines) {
+      const color = this.getColorForAuthor(blameLine.author);
+      if (!decorationsByColor.has(color)) {
+        decorationsByColor.set(color, []);
+      }
+      const line = blameLine.lineNumber - 1;
+      decorationsByColor.get(color)!.push(new vscode.Range(line, 0, line, 0));
+    }
+
+    this.applyDecorationTypes(editor, decorationsByColor, opacity, editorId);
+  }
+
+  private applyHeatDecoration(
+    editor: vscode.TextEditor,
+    blameLines: BlameLine[],
+    opacity: number,
+    editorId: string
+  ): void {
+    const heatColors = this.config.getHeatColors();
+    const timestamps = blameLines.map(l => l.date.getTime());
+    const minTime = Math.min(...timestamps);
+    const maxTime = Math.max(...timestamps);
+
+    const decorationsByColor = new Map<string, vscode.Range[]>();
+
+    for (const blameLine of blameLines) {
+      const ts = blameLine.date.getTime();
+      const ratio = computeHeatRatio(ts, minTime, maxTime);
+      const color = interpolateColor(ratio, heatColors.old, heatColors.new);
+
+      if (!decorationsByColor.has(color)) {
+        decorationsByColor.set(color, []);
+      }
+      const line = blameLine.lineNumber - 1;
+      decorationsByColor.get(color)!.push(new vscode.Range(line, 0, line, 0));
+    }
+
+    this.applyDecorationTypes(editor, decorationsByColor, opacity, editorId);
+  }
+
+  private applyDecorationTypes(
+    editor: vscode.TextEditor,
+    decorationsByColor: Map<string, vscode.Range[]>,
+    opacity: number,
+    editorId: string
+  ): void {
+    this.clearDecorations(editorId);
     const newDecorations: vscode.TextEditorDecorationType[] = [];
 
     for (const [color, ranges] of decorationsByColor) {
@@ -104,13 +163,11 @@ export class Decorator {
         overviewRulerColor: color,
         overviewRulerLane: vscode.OverviewRulerLane.Right
       });
-
       editor.setDecorations(decorationType, ranges);
       newDecorations.push(decorationType);
     }
 
     this.decorations.set(editorId, newDecorations);
-    this.hoverData.set(editorId, hoverData);
   }
 
   public clearDecorations(editorId?: string): void {
