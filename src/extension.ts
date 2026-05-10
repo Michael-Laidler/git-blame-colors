@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext): void {
       vscode.window.showInformationMessage('No active editor');
       return;
     }
-
+     
     const result = await GitBlame.blame(editor.document.uri.fsPath);
     if (!result) {
       vscode.window.showInformationMessage('No git blame data available');

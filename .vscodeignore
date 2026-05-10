@@ -1,4 +1,7 @@
-out
+src
 node_modules
 .vscode-test
 *.vsix
+tsconfig.json
+.gitignore
+PROJECT_PLAN.md
