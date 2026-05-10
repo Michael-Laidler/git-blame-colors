@@ -2,6 +2,16 @@
 
 Eine VS Code Extension, die Codezeilen basierend auf `git blame`-Daten einfärbt – entweder pro Autor oder als Heatmap nach Commit-Alter.
 
+## VSIX bauen (das Wichtigste)
+
+```sh
+npm run make-extension
+```
+
+Erzeugt `git-blame-color-0.0.1.vsix` im Projekt-Ordner. Diese Datei kann in VS Code über *Extensions → ... → Install from VSIX...* installiert werden.
+
+Der Befehl kompiliert das TypeScript und packt alle nötigen Dateien in ein Installationspaket.
+
 ## Features
 
 - **3 Färbungs-Modi**: Per Autor, als Heatmap (alt→neu), oder deaktiviert
@@ -59,7 +69,7 @@ Eine VS Code Extension, die Codezeilen basierend auf `git blame`-Daten einfärbt
 
 ## Entwicklung
 
-```
+```sh
 npm install
 npm run compile
 ```
