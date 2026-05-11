@@ -2,7 +2,7 @@
   "name": "git-blame-color",
   "displayName": "Git Blame Color",
   "description": "Colorize code lines based on git blame author",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "git-blame-color",
   "repository": {
     "type": "git",
@@ -25,7 +25,11 @@
         "gitBlameColor.mode": {
           "type": "string",
           "default": "author",
-          "enum": ["author", "heat", "off"],
+          "enum": [
+            "author",
+            "heat",
+            "off"
+          ],
           "enumDescriptions": [
             "Color per author",
             "Heat gradient by commit age",
