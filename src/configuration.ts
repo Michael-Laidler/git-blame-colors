@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { hashStringToColor } from './colorGenerator';
 
 export type ColoringMode = 'author' | 'heat' | 'off';
 
@@ -7,7 +8,6 @@ export interface GitBlameColorConfig {
   enabled: boolean;
   colors: Record<string, string>;
   heatColors: { old: string; new: string };
-  opacity: number;
 }
 
 export class Configuration {
@@ -29,8 +29,7 @@ export class Configuration {
       mode: config.get<ColoringMode>('mode', 'author'),
       enabled: config.get<boolean>('enabled', true),
       colors: { ...config.get<Record<string, string>>('colors', {}) },
-      heatColors: { ...config.get<{ old: string; new: string }>('heatColors', { old: '#2196F3', new: '#F44336' }) },
-      opacity: config.get<number>('opacity', 0.2)
+      heatColors: { ...config.get<{ old: string; new: string }>('heatColors', { old: '#2196F3', new: '#F44336' }) }
     };
   }
 
@@ -42,16 +41,28 @@ export class Configuration {
     return this.getConfig().enabled;
   }
 
-  public getOpacity(): number {
-    return this.getConfig().opacity;
-  }
-
   public getCustomColors(): Record<string, string> {
     return this.getConfig().colors;
   }
 
-  public getColorForAuthor(author: string): string | undefined {
-    return this.getCustomColors()[author];
+  public getColorForEmail(email: string): string | undefined {
+    return this.getCustomColors()[email];
+  }
+
+  public async ensureEmailColors(emails: string[]): Promise<void> {
+    const config = vscode.workspace.getConfiguration('gitBlameColor');
+    const existing = { ...config.get<Record<string, string>>('colors', {}) };
+
+    const additions: Record<string, string> = {};
+    for (const email of emails) {
+      if (email && !existing[email]) {
+        additions[email] = hashStringToColor(email);
+      }
+    }
+
+    if (Object.keys(additions).length > 0) {
+      await config.update('colors', { ...existing, ...additions }, vscode.ConfigurationTarget.Workspace);
+    }
   }
 
   public getHeatColors(): { old: string; new: string } {

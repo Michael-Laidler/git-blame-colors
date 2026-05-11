@@ -62,13 +62,6 @@
             }
           },
           "description": "Heat colors for age-based gradient"
-        },
-        "gitBlameColor.opacity": {
-          "type": "number",
-          "default": 0.2,
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Opacity of the blame color overlay (0-1)"
         }
       }
     },
@@ -80,6 +73,10 @@
       {
         "command": "gitBlameColor.show",
         "title": "Show Git Blame Colors"
+      },
+      {
+        "command": "gitBlameColor.compareFrom",
+        "title": "Git Blame Color: Commit vergleichen"
       }
     ],
     "viewsContainers": {

@@ -28,8 +28,7 @@ export class SettingsPanel implements vscode.WebviewViewProvider {
             type: 'settings',
             mode: config.get<string>('mode', 'author'),
             colors: config.get<Record<string, string>>('colors', {}),
-            heatColors: config.get<{ old: string; new: string }>('heatColors', { old: '#2196F3', new: '#F44336' }),
-            opacity: config.get<number>('opacity', 0.2)
+            heatColors: config.get<{ old: string; new: string }>('heatColors', { old: '#2196F3', new: '#F44336' })
           });
           break;
         }
@@ -53,11 +52,6 @@ export class SettingsPanel implements vscode.WebviewViewProvider {
           delete colors[message.author];
           await config.update('colors', colors, vscode.ConfigurationTarget.Global);
           webviewView.webview.postMessage({ type: 'saved' });
-          break;
-        }
-        case 'setOpacity': {
-          const config = vscode.workspace.getConfiguration('gitBlameColor');
-          await config.update('opacity', message.opacity, vscode.ConfigurationTarget.Global);
           break;
         }
         case 'setHeatColor': {
@@ -139,9 +133,6 @@ export class SettingsPanel implements vscode.WebviewViewProvider {
       color: var(--vscode-editor-foreground); font-size: 12px;
     }
     .author-item button:hover { background: var(--vscode-list-hoverBackground); }
-    .opacity-section { margin-top: 16px; }
-    input[type="range"] { width: 100%; cursor: pointer; }
-    .opacity-value { font-size: 12px; color: var(--vscode-descriptionForeground); text-align: right; }
     .empty-state { font-size: 12px; color: var(--vscode-descriptionForeground); text-align: center; padding: 16px 0; }
     .heat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
     .heat-row label { flex: 1; margin: 0; }
@@ -181,12 +172,6 @@ export class SettingsPanel implements vscode.WebviewViewProvider {
     </div>
   </div>
 
-  <div class="opacity-section">
-    <label for="opacitySlider">Opacity</label>
-    <input type="range" id="opacitySlider" min="0" max="1" step="0.05" value="0.2" />
-    <div class="opacity-value" id="opacityValue">0.20</div>
-  </div>
-
   <script>
     const vscode = acquireVsCodeApi();
 
@@ -197,7 +182,6 @@ export class SettingsPanel implements vscode.WebviewViewProvider {
     const addBtn = document.getElementById('addBtn');
     const authorList = document.getElementById('authorList');
     const opacitySlider = document.getElementById('opacitySlider');
-    const opacityValue = document.getElementById('opacityValue');
     const modeBtns = document.querySelectorAll('.mode-btn');
     const heatColorOld = document.getElementById('heatColorOld');
     const heatColorNew = document.getElementById('heatColorNew');
@@ -263,12 +247,6 @@ export class SettingsPanel implements vscode.WebviewViewProvider {
       if (e.key === 'Enter') addBtn.click();
     });
 
-    opacitySlider.addEventListener('input', () => {
-      const val = parseFloat(opacitySlider.value);
-      opacityValue.textContent = val.toFixed(2);
-      vscode.postMessage({ type: 'setOpacity', opacity: val });
-    });
-
     heatColorOld.addEventListener('input', () => {
       vscode.postMessage({ type: 'setHeatColor', key: 'old', color: heatColorOld.value });
     });
@@ -283,8 +261,6 @@ export class SettingsPanel implements vscode.WebviewViewProvider {
         setMode(msg.mode);
         renderAuthors(msg.colors);
         sessionStorage.setItem('colors', JSON.stringify(msg.colors));
-        opacitySlider.value = msg.opacity;
-        opacityValue.textContent = parseFloat(msg.opacity).toFixed(2);
         heatColorOld.value = msg.heatColors.old;
         heatColorNew.value = msg.heatColors.new;
       } else if (msg.type === 'saved') {

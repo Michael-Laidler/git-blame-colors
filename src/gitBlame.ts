@@ -16,6 +16,13 @@ export interface BlameResult {
   authors: Set<string>;
 }
 
+export interface CommitInfo {
+  hash: string;
+  author: string;
+  date: Date;
+  message: string;
+}
+
 export class GitBlame {
   public static async blame(filePath: string): Promise<BlameResult | null> {
     return new Promise((resolve) => {
@@ -32,6 +39,75 @@ export class GitBlame {
 
           const result = GitBlame.parseBlameOutput(stdout);
           resolve(result);
+        }
+      );
+    });
+  }
+
+  public static async getRemoteUrl(filePath: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath));
+      const cwd = workspaceFolder?.uri.fsPath || path.dirname(filePath);
+      cp.exec('git remote get-url origin', { cwd }, (error, stdout) => {
+        if (error) { return resolve(null); }
+        resolve(stdout.trim());
+      });
+    });
+  }
+
+  public static remoteToWebUrl(remoteUrl: string): string | null {
+    const sshMatch = remoteUrl.match(/git@([^:]+):(.+?)(?:\.git)?$/);
+    if (sshMatch) {
+      return `https://${sshMatch[1]}/${sshMatch[2]}`;
+    }
+    const httpsMatch = remoteUrl.match(/https?:\/\/([^/]+)\/(.+?)(?:\.git)?$/);
+    if (httpsMatch) {
+      return `https://${httpsMatch[1]}/${httpsMatch[2]}`;
+    }
+    return null;
+  }
+
+  public static async getDefaultBranch(filePath: string): Promise<string> {
+    return new Promise((resolve) => {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath));
+      const cwd = workspaceFolder?.uri.fsPath || path.dirname(filePath);
+      cp.exec('git symbolic-ref refs/remotes/origin/HEAD --short', { cwd }, (error, stdout) => {
+        if (!error && stdout.trim()) {
+          resolve(stdout.trim().replace(/^origin\//, ''));
+          return;
+        }
+        cp.exec('git branch -r', { cwd }, (err2, stdout2) => {
+          if (!err2) {
+            const branches = stdout2.split('\n').map((b: string) => b.trim());
+            if (branches.some((b: string) => b === 'origin/main')) { resolve('main'); return; }
+            if (branches.some((b: string) => b === 'origin/master')) { resolve('master'); return; }
+          }
+          resolve('main');
+        });
+      });
+    });
+  }
+
+  public static async getFileLog(filePath: string): Promise<CommitInfo[]> {
+    return new Promise((resolve) => {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath));
+      const cwd = workspaceFolder?.uri.fsPath || path.dirname(filePath);
+
+      cp.exec(
+        `git log --follow --format="%H|%an|%at|%s" -- "${filePath}"`,
+        { cwd, maxBuffer: 1024 * 1024 * 5 },
+        (error, stdout) => {
+          if (error) { return resolve([]); }
+          const commits = stdout.trim().split('\n').filter(Boolean).map(line => {
+            const parts = line.split('|');
+            return {
+              hash: parts[0],
+              author: parts[1],
+              date: new Date(parseInt(parts[2]) * 1000),
+              message: parts.slice(3).join('|')
+            };
+          });
+          resolve(commits);
         }
       );
     });
