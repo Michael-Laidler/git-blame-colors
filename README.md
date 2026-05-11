@@ -1,6 +1,6 @@
 # Git Blame Color
 
-Eine VS Code Extension, die Codezeilen basierend auf `git blame`-Daten einfärbt – entweder pro Autor oder als Heatmap nach Commit-Alter.
+Eine VS Code Extension, die Codezeilen mit `git blame`-Informationen als Inline-Text annotiert – entweder farbig pro Autor oder als Heatmap nach Commit-Alter.
 
 ## VSIX bauen (das Wichtigste)
 
@@ -14,22 +14,23 @@ Der Befehl kompiliert das TypeScript und packt alle nötigen Dateien in ein Inst
 
 ## Features
 
+- **Inline-Annotierungen**: Nach jeder Codezeile erscheint `  Datum  Autor  Commit-Summary` in der jeweiligen Farbe – kein Hintergrund-Overlay
 - **3 Färbungs-Modi**: Per Autor, als Heatmap (alt→neu), oder deaktiviert
-- **Autor-Farben**: Jeder Autor bekommt eine deterministische Farbe (Hash). Farben sind in den Settings überschreibbar.
+- **Autor-Farben**: Jede E-Mail-Adresse bekommt eine deterministische Farbe (Hash). Wird beim ersten Blame-Aufruf automatisch in den Workspace-Settings gespeichert. Überschreibbar in der Sidebar.
 - **Heatmap-Modus**: Älteste Commits = Farbe 1, neueste = Farbe 2, dazwischen linearer Farbverlauf
-- **Activity-Bar-Panel**: Klick auf das Icon in der linken Leiste öffnet die Sidebar mit allen Einstellungen
+- **Activity-Bar-Panel**: Klick auf das Icon in der linken Leiste öffnet die Sidebar mit Modus-Auswahl und Farbkonfiguration
 - **Color Picker**: Autorenfarben und Heat-Farben direkt aus der Sidebar wählbar
-- **Opacity-Steuerung**: Globale Deckkraft des Overlays einstellbar
-- **Hover-Info**: Mouseover zeigt Autor, Email, Datum, Commit-Hash und Summary
+- **Hover-Info**: Mouseover über die Inline-Annotation zeigt Autor, E-Mail, Datum, Commit-Hash, Summary, Dateiverlauf und Links zu GitHub/GitLab
+- **Commit-Vergleich**: Im Hover-Verlauf kann ein Commit angeklickt werden, um ihn per VS Code Diff gegen einen anderen zu vergleichen
 - **Toggle-Command**: Ein-/Ausschalten per Befehl
 
 ## Modi
 
 | Modus | Beschreibung |
 |-------|-------------|
-| **Author** | Jeder Autor bekommt eine eigene Farbe (Hash oder benutzerdefiniert) |
+| **Author** | Jede E-Mail-Adresse bekommt eine eigene Farbe (Hash oder benutzerdefiniert) |
 | **Heat** | Farbverlauf zwischen alt (Standard Blau) und neu (Standard Rot) |
-| **Off** | Keine Einfärbung |
+| **Off** | Keine Annotierungen |
 
 ## Konfiguration
 
@@ -38,15 +39,20 @@ Der Befehl kompiliert das TypeScript und packt alle nötigen Dateien in ein Inst
 - Default: `"author"`
 - Färbungsmodus
 
+### gitBlameColor.enabled
+- Typ: `boolean`
+- Default: `true`
+- Annotierungen beim Start aktivieren
+
 ### gitBlameColor.colors
 - Typ: `object`
 - Default: `{}`
-- Benutzerdefinierte Autorenfarben
+- Benutzerdefinierte Farben pro E-Mail-Adresse (wird automatisch befüllt)
 
 ```json
 {
   "gitBlameColor.colors": {
-    "Max Mustermann": "#FF5733"
+    "max.mustermann@example.com": "#FF5733"
   }
 }
 ```
@@ -54,18 +60,12 @@ Der Befehl kompiliert das TypeScript und packt alle nötigen Dateien in ein Inst
 ### gitBlameColor.heatColors
 - Typ: `object`
 - Default: `{ "old": "#2196F3", "new": "#F44336" }`
-- Farben für den Heat-Modus (alteste ↔ neueste Commits)
-
-### gitBlameColor.opacity
-- Typ: `number`
-- Default: `0.2`
-- Bereich: `0` bis `1`
-- Deckkraft des Overlays
+- Farben für den Heat-Modus (älteste ↔ neueste Commits)
 
 ## Commands
 
-- `Git Blame Color: Toggle` – Ein-/Ausschalten
-- `Git Blame Color: Show` – Alle Autoren und ihre Farben anzeigen
+- `Git Blame Color: Toggle` – Annotierungen ein-/ausschalten
+- `Git Blame Color: Show` – Autoren und ihre Farben für die aktive Datei anzeigen
 
 ## Entwicklung
 
